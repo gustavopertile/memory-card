@@ -3,7 +3,7 @@ import SpeechRecognition, {
 	useSpeechRecognition,
 } from 'react-speech-recognition';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, AsyncStorage } from 'react';
 
 import {
 	StyleSheet,
@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import SpeechToText from './SpeechToText';
 
 export default function App() {
 	const [task, setTask] = useState([]);
@@ -26,7 +27,65 @@ export default function App() {
 
 	const { transcript, resetTranscript } = useSpeechRecognition();
 
-	// adiciona nova tarefa com o que foi dito com voz
+	// useEffect(() => {
+	// 	SpeechRecognition.startListening({ continuous: true });
+	// 	console.log('escutando');
+	// }, []);
+
+	// const {
+	// 	transcript,
+	// 	listening,
+	// 	resetTranscript,
+	// 	browserSupportsSpeechRecognition,
+	// } = useSpeechRecognition();
+
+	// if (!browserSupportsSpeechRecognition) {
+	// 	return <Text>Browser doesn't support speech recognition.</Text>;
+	// }
+
+	// const [recording, setRecording] = useState();
+	// const [recordings, setRecordings] = useState([]);
+	// const [message, setMessage] = useState('');
+
+	// async function startRecording() {
+	// 	try {
+	// 		const permission = await Audio.requestPermissionAsync();
+
+	// 		if(permission.status = 'granted') {
+	// 			await Audio.setAudioModeAsync({
+	// 				allowsRecordingIOS: true,
+	// 				playsInSilentModeIOS: true
+	// 			});
+
+	// 			const { recording } = await Audio.Recording.createAsync(
+	// 				Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+	// 			);
+
+	// 			setRecording(recording);
+	// 		} else {
+	// 			setMessage('Garanta que dê permissão ao app para acessar o microfone')
+	// 		}
+	// 	}
+	// 	catch (err) {
+	// 		console.log('Erro ao começar a gravar', err);
+	// 	}
+	// }
+
+	// async function stopRecording() {
+	// 	setRecording(undefined);
+	// 	await recording.stopAndUnloadAsync();
+
+	// 	let updateRecordings = [...recordings];
+	// 	const { sound, status } = await recording.createNewLoadedSoundAsync();
+	// 	updateRecordings.push({
+	// 		sound: sound,
+	// 		duration: getDurationFormatted(status.durationMillis),
+	// 		file: recording.getURI()
+	// 	});
+
+	// 	setRecordings(updateRecordings);
+	// }
+
 	async function addTask() {
 		const search = task.filter((task) => task === transcript);
 
@@ -41,7 +100,6 @@ export default function App() {
 		Keyboard.dismiss();
 	}
 
-	// adiciona nova tarefa digitada
 	async function addTaskWrite() {
 		const search = task.filter((task) => task === newTask);
 
@@ -56,12 +114,7 @@ export default function App() {
 		Keyboard.dismiss();
 	}
 
-	// apaga a tarefa selecionada
 	async function removeTask(item) {
-		// delete a tarefa clicada
-		setTask(task.filter((task) => task !== item))
-
-		// alerta para IOS -> funciona apenas no aplicativo
 		Alert.alert(
 			'Deletar Nota',
 			'Tem certeza que deseja remover esta anotação?',
@@ -82,6 +135,24 @@ export default function App() {
 		);
 	}
 
+	// useEffect(() => {
+	// 	async function carregaDados() {
+	// 		const task = await AsyncStorage.getItem('task');
+
+	// 		if(task) {
+	// 			setTask(JSON.parse(task));
+	// 		}
+	// 	}
+	// 	carregaDados();
+	// }, [])
+
+	// useEffect(() => {
+	// 	async function salvaDados() {
+	// 		AsyncStorage.setItem('task', JSON.stringify(task))
+	// 	}
+	// 	salvaDados();
+	// }, [task])
+
 	return (
 		<>
 			<KeyboardAvoidingView
@@ -92,7 +163,12 @@ export default function App() {
 			>
 				<View style={styles.container}>
 					<View style={styles.Body}>
-						<Text style={styles.Title}>Memory Card <Ionicons name="save-outline" size={30}/></Text>
+						<Text style={styles.Title}>Memory Card</Text>
+						<TextInput
+							style={styles.Input}
+							value={transcript}
+							placeholder={transcript}
+						></TextInput>
 						<FlatList
 							style={styles.FlatList}
 							data={task}
@@ -112,12 +188,39 @@ export default function App() {
 							)}
 						/>
 					</View>
+					<TouchableOpacity
+							style={styles.StartButton}
+							onPress={(e) => {
+								e.preventDefault();
+								SpeechRecognition.startListening({ continuous: true });
+								console.log('escutando');
+							}}
+						>
+							<Text style={styles.TextStart}>Falar</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={styles.CleanButton}
+							onPress={resetTranscript}
+						>
+							<Text>Limpar</Text>
+						</TouchableOpacity>
 					<StatusBar style="auto" />
-					<View style={styles.FormTalk}>
+					<View style={styles.Form}>
+						<TouchableOpacity
+							style={styles.Button}
+							onPress={(e) => {
+								e.preventDefault();
+								SpeechRecognition.stopListening();
+								console.log('não escuto mais então');
+							}}
+						>
+							<Text>Parar de Escutar</Text>
+						</TouchableOpacity>
 						<TextInput
 							style={styles.Input}
 							placeholderTextColor="#999"
 							autoCorrect={true}
+							placeholder="Adicione uma tarefa"
 							onChangeText={(text) => setNewTask(text)}
 							value={transcript}
 						/>
@@ -129,45 +232,16 @@ export default function App() {
 								resetTranscript;
 							}}
 						>
-							<Ionicons name="add-circle-outline" size={25} color="#FFF" />
+							<Ionicons name="ios-add" size={25} color="#FFF" />
 						</TouchableOpacity>
 					</View>
-					<View style={styles.Buttons}>
-						<TouchableOpacity
-							style={styles.CleanButton}
-							onPress={resetTranscript}
-							>
-							<Text style={styles.TextButton}>Limpar</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
-							style={styles.StartButton}
-							onPress={(e) => {
-								e.preventDefault();
-								SpeechRecognition.startListening({ continuous: true });
-								console.log('escutando');
-							}}
-							>
-							<Ionicons name="mic-outline" size={40} color="#FFF" />
-						</TouchableOpacity>
-						<TouchableOpacity
-							style={styles.StopButton}
-							onPress={(e) => {
-								e.preventDefault();
-								SpeechRecognition.stopListening();
-								console.log('não escuto mais então');
-							}}
-							>
-							<Ionicons name="mic-off-outline" size={25} color="#FFF" />
-						</TouchableOpacity>
-					</View>
-					
 					<StatusBar style="auto" />
 					<View style={styles.Form}>
 						<TextInput
 							style={styles.Input}
 							placeholderTextColor="#999"
 							autoCorrect={true}
-							placeholder="Não pode falar? Digite"
+							placeholder="Adicione uma tarefa"
 							onChangeText={(text) => setNewTask(text)}
 							value={newTask}
 						/>
@@ -175,7 +249,7 @@ export default function App() {
 							style={styles.Button}
 							onPress={() => addTaskWrite()}
 						>
-							<Ionicons name="add-circle-outline" size={25} color="#FFF" />
+							<Ionicons name="ios-add" size={25} color="#FFF" />
 						</TouchableOpacity>
 					</View>
 				</View>
@@ -184,7 +258,6 @@ export default function App() {
 	);
 }
 
-// CSS
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
@@ -197,19 +270,19 @@ const styles = StyleSheet.create({
 		fontSize: 30,
 		paddingVertical: 0,
 		marginHorizontal: 'auto',
-		alignItems: 'baseline',
-		// marginHorizontal: 90,
 	},
 	Body: {
 		flex: 1,
 	},
 	Form: {
 		padding: 0,
-		height: 40,
+		height: 60,
 		justifyContent: 'center',
 		alignSelf: 'stretch',
 		flexDirection: 'row',
-		paddingTop: 0,
+		paddingTop: 13,
+		borderTopWidth: 1,
+		borderColor: '#eee',
 	},
 	Input: {
 		flex: 1,
@@ -220,7 +293,6 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 10,
 		borderWidth: 1,
 		borderColor: '#eee',
-		textAlign: 'start'
 	},
 	Button: {
 		height: 40,
@@ -253,62 +325,21 @@ const styles = StyleSheet.create({
 		marginTop: 4,
 		textAlign: 'center',
 	},
-	Buttons: {
-		padding: 0,
-		height: 120,
-		justifyContent: 'center',
-		alignItems: 'center',
-		flexDirection: 'row',
-		marginVertical: 5
-	},
 	StartButton: {
-		height: 120,
-		width: 120,
+		height: 100,
+		width: 100,
 		justifyContent: 'center',
 		alignItems: 'center',
-		borderColor: '#4CAF50',
-		backgroundColor: '#4CAF50',
-		borderWidth: 2,
-		borderRadius: 100,
-		marginHorizontal: 40,
-		marginBottom: 10
-	},
-	TextButton: {
-		color: 'white',
-		fontSize: 16,
-	},
-	CleanButton: {
-		height: 80,
-		width: 80,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderColor: '#555555',
-		backgroundColor: '#555555',
+		borderColor: '#39FF14',
+		backgroundColor: '#eee',
 		borderWidth: 2,
 		borderRadius: 100,
 		marginHorizontal: 'auto',
 		marginBottom: 10
 	},
-	StopButton: {
-		height: 80,
-		width: 80,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderColor: '#f44336',
-		backgroundColor: '#f44336',
-		borderWidth: 2,
-		borderRadius: 100,
-		marginHorizontal: 'auto',
-		marginBottom: 10
-	},
-	FormTalk: {
-		padding: 0,
-		height: 60,
-		justifyContent: 'center',
-		alignSelf: 'stretch',
-		flexDirection: 'row',
-		paddingTop: 13,
-		borderTopWidth: 1,
-		borderColor: '#eee',
-	},
+	TextStart: {
+		color: '#000',
+		fontSize: 18,
+
+	}
 });
