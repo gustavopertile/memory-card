@@ -21,50 +21,46 @@ import {
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 export default function App() {
-	const [task, setTask] = useState([]);
-	const [newTask, setNewTask] = useState('');
+	const [task, setTask] = useState([]); // variáveis é escrito
+	const [newTask, setNewTask] = useState(''); // variáveis para nova tarefa
 
-	const { transcript, resetTranscript } = useSpeechRecognition();
+	const { transcript, resetTranscript } = useSpeechRecognition(); // variáveis do speech to text
 
 	// adiciona nova tarefa com o que foi dito com voz
 	async function addTask() {
-		const search = task.filter((task) => task === transcript);
+		const search = task.filter((task) => task === transcript); // pesquisa se já existe uma tarefa igual
 
 		if (search.length !== 0) {
 			console.log('Você já possui uma nota igual.');
-			Alert.alert('Atenção', 'Você já possui uma nota igual.');
+			alert('Atenção, você já possui uma nota igual.');
 			return;
 		}
 
-		setTask([...task, transcript]);
-		setNewTask('');
-
-		Keyboard.dismiss();
+		setTask([...task, transcript]); // se não tiver uma tarefa igual, a tarefa é adicionada
+		setNewTask(''); // limpa o campo
 	}
 
 	// adiciona nova tarefa digitada
 	async function addTaskWrite() {
-		const search = task.filter((task) => task === newTask);
+		const search = task.filter((task) => task === newTask); //  pesquisa se já existe uma tarefa igual
 
 		if (search.length !== 0) {
-			Alert.alert('Atenção', 'Você já possui uma nota igual.');
+			alert('Atenção você já possui uma nota igual.');
 			return;
 		}
 
-		setTask([...task, newTask]);
+		setTask([...task, newTask]); // se não tiver uma tarefa igual, a tarefa é adicionada
 		setNewTask('');
 
-		Keyboard.dismiss();
+		Keyboard.dismiss(); // fecha o teclado (IOS)
 	}
 
 	// apaga a tarefa selecionada
 	async function removeTask(item) {
-		// delete a tarefa clicada
-		setTask(task.filter((task) => task !== item))
+		setTask(task.filter((task) => task !== item)) // delete a tarefa clicada
 
 		// alerta para IOS -> funciona apenas no aplicativo
-		Alert.alert(
-			'Deletar Nota',
+		alert(
 			'Tem certeza que deseja remover esta anotação?',
 			[
 				{
@@ -76,7 +72,7 @@ export default function App() {
 				},
 				{
 					text: 'OK',
-					onPress: () => setTask(task.filter((task) => task === newTask)),
+					onPress: () => setTask(task.filter((task) => task === newTask)), // se clicado para confirmar apaga a tarefa -> IOS
 				},
 			],
 			{ cancelable: false }
