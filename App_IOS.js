@@ -31,7 +31,6 @@ export default function App() {
 		const search = task.filter((task) => task === transcript);
 
 		if (search.length !== 0) {
-			console.log('Você já possui uma nota igual.');
 			Alert.alert('Atenção', 'Você já possui uma nota igual.');
 			return;
 		}
@@ -57,10 +56,28 @@ export default function App() {
 		Keyboard.dismiss();
 	}
 
+	// 	useEffect(() => {
+	// 	async function carregaDados() {
+	// 		const task = await AsyncStorage.getItem('task');
+
+	// 		if(task) {
+	// 			setTask(JSON.parse(task));
+	// 		}
+	// 	}
+	// 	carregaDados();
+	// }, [])
+
+	// useEffect(() => {
+	// 	async function salvaDados() {
+	// 		AsyncStorage.setItem('task', JSON.stringify(task))
+	// 	}
+	// 	salvaDados();
+	// }, [task])
+
 	// apaga a tarefa selecionada
 	async function removeTask(item) {
 		// delete a tarefa clicada
-		setTask(task.filter((task) => task !== item))
+		// setTask(task.filter((task) => task !== item))
 
 		// alerta para IOS -> funciona apenas no aplicativo
 		Alert.alert(
@@ -76,7 +93,7 @@ export default function App() {
 				},
 				{
 					text: 'OK',
-					onPress: () => setTask(task.filter((task) => task === newTask)),
+					onPress: () => setTask(task.filter((task) => task !== item)),
 				},
 			],
 			{ cancelable: false }
@@ -208,7 +225,8 @@ const styles = StyleSheet.create({
 		fontSize: 30,
 		paddingVertical: 0,
 		marginHorizontal: 'auto',
-		alignItems: 'baseline'
+		alignItems: 'baseline',
+		marginHorizontal: 90,
 	},
 	Body: {
 		flex: 1,
